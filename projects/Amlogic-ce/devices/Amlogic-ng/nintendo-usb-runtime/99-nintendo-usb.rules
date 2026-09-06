@@ -1,0 +1,2 @@
+# The stock 4.9 kernel lets hid-generic claim these wired controllers first.
+ACTION=="add", SUBSYSTEM=="hid", KERNEL=="0003:057E:2009.*", RUN+="/storage/.config/nintendo-usb/bind-controller %k"

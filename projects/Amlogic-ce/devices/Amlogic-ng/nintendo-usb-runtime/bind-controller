@@ -1,0 +1,37 @@
+#!/bin/sh
+# Initialize wired 057e:2009 devices on the existing kernel with Nintendo disabled.
+set -eu
+
+device=${1:?Expected HID device name}
+case "$device" in
+    0003:057E:2009.*) ;;
+    *) exit 2 ;;
+esac
+sys=/sys/bus/hid/devices/$device
+[ -d "$sys" ] || exit 0
+
+# Load before unbinding so a module/ABI error leaves the original driver intact.
+/usr/sbin/modprobe hid_nintendo
+driver=$(readlink "$sys/driver" || :)
+case "${driver##*/}" in
+    nintendo) exit 0 ;;
+    hid-generic) ;;
+    '') ;;
+    *) exit 0 ;;
+esac
+
+# One tested Intec panel times out if initialized immediately after enumeration.
+sleep 2
+[ -d "$sys" ] || exit 0
+if [ "${driver##*/}" = hid-generic ]; then
+    printf '%s' "$device" > /sys/bus/hid/drivers/hid-generic/unbind
+fi
+
+if ! printf '%s' "$device" > /sys/bus/hid/drivers/nintendo/bind; then
+    if [ -d "$sys" ] && [ ! -L "$sys/driver" ]; then
+        printf '%s' "$device" > /sys/bus/hid/drivers/hid-generic/bind || :
+    fi
+    logger -t nintendo-usb "Initialization failed for $device"
+    exit 1
+fi
+logger -t nintendo-usb "Initialized $device"
