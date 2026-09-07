@@ -247,6 +247,10 @@ is_image() { case "${1,,}" in *.png|*.jpg|*.jpeg|*.bmp|*.gif) return 0;; *) retu
 if [[ -f "/storage/.config/emuelec/configs/novideo" ]] && [[ ${VIDEO} != "1" ]]; then
  if [ "${ACTION_TYPE}" != "intro" ]; then
    DURATION="$(get_ee_setting ee_splash_loading_duration)"
+   # Per-game timing only applies when that game's custom splash was selected.
+   if [[ "${ACTION_TYPE}" == "gameloading" && "${SPLASH}" == "${SPLASHDIR}/${PLATFORM}/${BASEROMNAME_NOEXT}."* ]]; then
+     DURATION="$(get_ee_setting ee_splash_loading_duration "${PLATFORM}" "${BASEROMNAME}")"
+   fi
    FALLBACK_SPLASH="${GAMELOADINGSPLASH}"
 
 write_log "DURATION is ${DURATION}"

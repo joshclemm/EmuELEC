@@ -582,11 +582,33 @@ installed script's selection logic without displaying over the running game.
 It takes effect on the next launch. Remove only this PNG to restore the existing
 splash fallback.
 
-Subsequently set `ee_splash_loading_duration=8` in the tested box's existing
-`/storage/.config/emuelec/configs/emuelec.conf` and verified EmuELEC reads back
-eight seconds. This built-in setting applies to all game-loading splashes.
-The previous configuration was backed up; remove this setting or set it to `0`
-to restore the previous lack of an added still-image delay.
+The eight-second delay now applies only to the four custom game guides. The
+splash script reads EmuELEC's per-game duration setting only when it selects
+that ROM's own splash file. Platform and default artwork keep the global timing;
+removing a custom image also restores the fallback timing. Arcade aliases such
+as Neo Geo share the `arcade` prefix used by the splash directory.
+
+The tested box's `/storage/.config/emuelec/configs/emuelec.conf` uses:
+
+```ini
+ee_splash_loading_duration=0
+arcade["offroad.zip"].ee_splash_loading_duration=8
+arcade["wjammers.zip"].ee_splash_loading_duration=8
+arcade["tapper.zip"].ee_splash_loading_duration=8
+atomiswave["dolphin.zip"].ee_splash_loading_duration=8
+```
+
+For the existing read-only system image, the installed splash script was copied
+to `/storage/.config/emuelec/scripts/show_splash.sh` with the same duration lookup
+change. EmuELEC's existing PATH selects this persistent override immediately;
+no restart is needed. The repository's main splash script includes the change
+for future builds. Remove the runtime override after installing a build that
+includes it, so subsequent system script updates take effect. The previous
+configuration and original script were backed up before installation.
+Verified the actual settings lookup and splash selection with playback and sleep
+mocked: all four guides use eight seconds, ordinary games use zero added delay,
+Neo Geo finds the shared Arcade guide, missing artwork restores fallback timing,
+and exit/blank screens keep their own behavior.
 
 The companion Windjammers artwork is
 [`nintendo-usb-runtime/splash/arcade/wjammers.png`](nintendo-usb-runtime/splash/arcade/wjammers.png),
