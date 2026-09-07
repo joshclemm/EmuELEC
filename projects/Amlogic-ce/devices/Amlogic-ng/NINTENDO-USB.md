@@ -600,6 +600,29 @@ and selection for both Arcade and Neo Geo copies of `wjammers.zip` (the splash
 script normalizes both systems to `arcade`). No game was interrupted for the
 installation; the splash takes effect on its next launch.
 
+The original Tapper uses
+[`nintendo-usb-runtime/splash/arcade/tapper.png`](nintendo-usb-runtime/splash/arcade/tapper.png),
+installed at `/storage/roms/splash/arcade/tapper.png`. Its guide shows up/down
+to change bars, left/right to move along a bar, B held to fill and released to
+serve, Minus for coins, Plus to start, and the Player 1 Home/Capture shortcuts.
+The default MAME 2003-Plus layout maps Tapper's button 1 to the panel's B.
+Verified the PNG decode, transferred checksum, selection for `tapper.zip`, and
+the existing eight-second setting without interrupting a game. The separate
+Root Beer Tapper (`rbtapper.zip`) keeps its existing splash fallback.
+
+The Dolphin Blue guide is
+[`nintendo-usb-runtime/splash/atomiswave/dolphin.png`](nintendo-usb-runtime/splash/atomiswave/dolphin.png),
+installed at `/storage/roms/splash/atomiswave/dolphin.png` for `dolphin.zip`.
+Flycast maps Shoot to RetroPad B, Jump to A, and Special to Y. The tested box's
+pre-existing Player 1 overrides swap physical X/Y relative to its Nintendo
+autoconfiguration, so the guide explicitly shows physical X for Player 1's
+Special and physical Y for Player 2's Special. Those mappings were preserved.
+The remaining entries show movement/aim, Minus for coins, Plus to start, and
+the Player 1 Home/Capture shortcuts. The button translation was checked against
+[the pinned Flycast source](https://github.com/flyinghead/flycast/blob/bf2bd7efed41e9f3367a764c2d90fcaa9c38a1f9/shell/libretro/libretro.cpp).
+Verified the PNG decode, transferred checksum, selection for the Atomiswave
+ROM, and the existing eight-second setting without interrupting a game.
+
 ## Disable the persistent runtime setup
 
 To disable the persistent setup, run on the box:
