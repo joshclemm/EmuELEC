@@ -490,7 +490,11 @@ alias, and the installed rule passed `udevadm test`. A physical reconnect of
 the first panel initialized automatically. The second panel timed out when
 initialized immediately after enumeration, then succeeded on a later manual
 retry. The helper's two-second startup delay was added after that observation;
-physical reconnection with the delay and reboot validation are still pending.
+a subsequent reboot with both panels attached logged successful automatic
+initialization for both devices, which appeared as `event3`/`js0` and
+`event4`/`js1` using `nintendo`. Physical reconnection with the delay and
+validation of every control after reboot are still pending; subsequent gameplay
+input was confirmed as described below.
 
 A later Configure Input dialog report occurred while both devices were already
 bound to `nintendo` and still exactly matched the saved GUID/name. Refreshing
@@ -499,7 +503,7 @@ joystick`, using the existing profile on `event5` and `event6`. No profile rewri
 was needed. The log excerpt is `/storage/.config/nintendo-usb/menu-profile-check.log`.
 The user subsequently confirmed both panels worked in the menu.
 
-## RetroArch game controls and exit shortcut
+## RetroArch game controls and single-button shortcuts
 
 The initial menu-only profile did not create a RetroArch autoconfiguration file.
 An accidentally launched Flycast game exposed that missing step: RetroArch used
@@ -508,9 +512,11 @@ was unavailable. The game was closed with RetroArch's handled SIGINT signal.
 
 The optional `nintendo-usb-runtime/Nintendo Switch Pro Controller.cfg` supplies
 the same tested button/axis mapping for RetroArch's `udev` input driver. It sets
-Home (button 11) as the hotkey, Plus/Start (10) as exit, and X (2) as menu toggle.
-Hold Home first, then press Plus/Start on the controller assigned to Player 1
-to return to EmulationStation. Home + X opens the RetroArch menu.
+Home (button 11) as exit and Capture (4) as menu toggle, with the controller's
+hotkey modifier unset. On the controller assigned to Player 1, press Home once
+to return to EmulationStation, or press and release Capture to open RetroArch's
+menu. Plus/Start and X remain ordinary game buttons. These replace the initial
+Home + Start and Home + X shortcuts.
 
 To install from the repository root on the build host:
 
@@ -520,12 +526,79 @@ scp 'projects/Amlogic-ce/devices/Amlogic-ng/nintendo-usb-runtime/Nintendo Switch
 ssh "root@$EE_HOST" 'cp /storage/.config/nintendo-usb/retroarch-profile.cfg "/tmp/joypads/Nintendo Switch Pro Controller.cfg"'
 ```
 
+With RetroArch closed, back up `/storage/.config/retroarch/retroarch.cfg` and set
+these two entries in that existing file:
+
+```ini
+input_exit_emulator_btn = "11"
+quit_press_twice = "false"
+```
+
+The explicit global Exit binding is needed on the tested RetroArch 1.21.0
+(`bfa603828d`) with its existing F1 keyboard hotkey. Its modifier filtering checks
+the explicitly configured joypad Exit binding when allowing a standalone
+controller hotkey alongside the keyboard modifier. Capture's autoconfigured menu
+button has a separate path that works without a controller modifier. The
+keyboard hotkey and other keyboard shortcuts are preserved. The global Exit
+binding is for this Nintendo-panel setup; reset it to `nul` to use other
+controllers' autoconfigured exit buttons. Disabling `quit_press_twice` applies
+to RetroArch generally.
+
+EmulationStation's profile remains separate. Running Configure Input again can
+regenerate RetroArch's controller file; reapply this profile afterward to retain
+the single-button shortcuts.
+
+A later input failure exposed an incorrectly saved Configure Input result in
+both ES and RetroArch: A was assigned to a joystick axis and physical button 1
+became the hotkey modifier. Restored only this controller's ES entry and
+RetroArch profile from the verified files, backed up the incorrect configuration,
+and removed its stale temporary wizard file. Both repaired profiles survived an
+EmulationStation restart. The global Home/quit settings were preserved; physical
+gameplay was subsequently confirmed in the arcade Super Off Road: R accelerates
+and B operates the game's action button. Its MAME 2003-Plus default maps the
+pedal to R and button 1 to B, so A being unused in this game is expected.
+
 On this image `/tmp/joypads` is an overlay with `/storage/joypads` as its writable
 upper directory. Writing through `/tmp/joypads` was verified to persist the same
-file in `/storage/joypads`. Existing profiles and RetroArch's global config were
-preserved. A separate one-frame RetroArch menu run with null video/audio and
+file in `/storage/joypads`. Other controller profiles were preserved. Only the
+two global settings above were changed for the single-button setup. A separate
+one-frame RetroArch menu run with null video/audio and
 config saving disabled confirmed both panels were automatically configured.
-Actual in-game use of the new exit chord still needs a physical button check.
+Actual in-game use of the single-button shortcuts still needs a physical check.
+
+## Game loading splashes
+
+The custom artwork and controls guide is saved as
+[`nintendo-usb-runtime/splash/arcade/offroad.png`](nintendo-usb-runtime/splash/arcade/offroad.png).
+It shows joystick steering, R acceleration, B nitro, Minus for coins, and the
+Player 1 Home/Capture shortcuts configured above. The image is designed for the
+tested 1280x1024 display and this panel's mapping.
+
+Installed it at `/storage/roms/splash/arcade/offroad.png`, matching the ROM's
+`offroad.zip` filename. The existing splash script selects this per-game file
+before platform or default artwork; no launcher or global setting change was
+needed. Verified the transferred checksum, decoded the PNG, and exercised the
+installed script's selection logic without displaying over the running game.
+It takes effect on the next launch. Remove only this PNG to restore the existing
+splash fallback.
+
+Subsequently set `ee_splash_loading_duration=8` in the tested box's existing
+`/storage/.config/emuelec/configs/emuelec.conf` and verified EmuELEC reads back
+eight seconds. This built-in setting applies to all game-loading splashes.
+The previous configuration was backed up; remove this setting or set it to `0`
+to restore the previous lack of an added still-image delay.
+
+The companion Windjammers artwork is
+[`nintendo-usb-runtime/splash/arcade/wjammers.png`](nintendo-usb-runtime/splash/arcade/wjammers.png),
+installed at `/storage/roms/splash/arcade/wjammers.png`. Its guide uses the
+configured FinalBurn Neo default layout: joystick movement/aim, B throw/dash,
+A lob, Minus for coins, Plus to start, and the same Player 1 shortcuts.
+These are the panel's labels; the original Neo Geo button A maps to this
+panel's B. See [FBNeo's input mapping](https://github.com/libretro/FBNeo/blob/master/src/burner/libretro/retro_input.cpp).
+Verified the PNG decode, transferred checksum, eight-second duration setting,
+and selection for both Arcade and Neo Geo copies of `wjammers.zip` (the splash
+script normalizes both systems to `arcade`). No game was interrupted for the
+installation; the splash takes effect on its next launch.
 
 ## Disable the persistent runtime setup
 
